@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="home-card">
+    <h1>Discover Your Next Favorite Book</h1>
+    <p>Explore books tailored to your taste with VibeReads.</p>
+    <a href="{{ url_for('recommend') }}"><button>Get Recommendations</button></a>
+</div>
+
+<h2 class="featured-title">Featured Books</h2>
+<div class="book-grid">
+    {% for book in books %}
+<div class="book-card">
+    <img src="{{ book.coverimage }}" alt="{{ book.title }}">
+    <h4>{{ book.title }}</h4>
+    <p>Author: {{ book.author }}</p>
+    <p>Genre: {{ book.genre }}</p>
+    <p>Mood: {{ book.mood }}</p>
+    <a href="{{ book.freelink }}" target="_blank">Read for Free</a>
+</div>
+{% endfor %}
+
+</div>
+{% endblock %}

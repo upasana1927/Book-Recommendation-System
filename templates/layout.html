@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VibeReads</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="navbar">
+        <div class="logo">
+            <img src="{{ url_for('static', filename='b.jpg') }}" alt="VibeReads Logo" class="logo-img">
+            <span class="site-name">VibeReads</span>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('home') }}"
+   class="{% if request.endpoint == 'home' %}active{% endif %}">
+   Home
+</a>
+
+<a href="{{ url_for('recommend') }}"
+   class="{% if request.endpoint == 'recommend' %}active{% endif %}">
+   Recommendation
+</a>
+
+        </div>
+    </div>
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>
