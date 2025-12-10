@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Favorites</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: "Segoe UI", sans-serif;
+            background-color: #cbc0b0; /* Beige background */
+            color: #271f15;
+        }
+
+        /* Back Button */
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background-color: #473622; /* Dark brown */
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            z-index: 1000;
+        }
+
+        .back-btn:hover {
+            background-color: #6f5333;
+        }
+
+        /* Heading Card */
+        .heading-card {
+            max-width: 400px;
+            margin: 80px auto 40px auto; /* top margin increased for back button space */
+            padding: 20px 30px;
+            background-color: #473622;
+            border-radius: 14px;
+            box-shadow: 0 12px 30px rgba(220, 211, 211, 0.12), 0 4px 10px rgba(231, 223, 223, 0.08);
+            text-align: center;
+            
+        }
+
+        .heading-card h1 {
+            margin: 0;
+            font-size: 32px;
+            color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .book-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 30px;
+            justify-items: center;
+        }
+
+        .book-card {
+            background-color: #e4ded3;
+            width: 100%;
+            max-width: 240px;
+            padding: 18px;
+            border-radius: 14px;
+            box-shadow: 0 12px 30px rgba(220, 211, 211, 0.12), 0 4px 10px rgba(231, 223, 223, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+        }
+
+        .book-card:hover {
+            transform: translateY(-8px);
+        }
+
+        .book-card img {
+            width: 100%;
+            height: 260px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 12px;
+        }
+
+        .book-card h4 {
+            font-size: 17px;
+            margin-bottom: 6px;
+        }
+
+        .book-card p {
+            font-size: 14px;
+            margin: 4px 0;
+        }
+
+        .book-card a {
+            display: inline-block;
+            margin-top: 8px;
+            color: #473622;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .book-card a:hover {
+            text-decoration: underline;
+        }
+
+        /* Remove Button */
+        .remove-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #c9b99bff;
+            color: #473622;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 10px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .remove-btn:hover {
+            background-color: #f1d49fff;
+        }
+    </style>
+</head>
+<body>
+    <!-- Back Button -->
+    <a href="{{ url_for('home') }}" class="back-btn">← Back</a>
+
+    <!-- Heading Card -->
+    <div class="heading-card">
+        <h1>Your Favorites</h1>
+    </div>
+
+    <div class="container">
+        {% if books %}
+            <div class="book-grid">
+                {% for book in books %}
+                <div class="book-card">
+                    <!-- Remove Button -->
+                    <form method="POST" action="{{ url_for('remove_favorite', book_id=book.id) }}">
+                        <button type="submit" class="remove-btn">Remove</button>
+                    </form>
+
+                    <h4>{{ book.title }}</h4>
+                    <p>Author: {{ book.author }}</p>
+                    <p>Genre: {{ book.genre }}</p>
+                    <p>Mood: {{ book.mood }}</p>
+                    <a href="{{ book.freelink }}" target="_blank">Read for Free</a>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="text-align: center; font-size: 18px;">No favorites added yet.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

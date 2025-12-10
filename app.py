@@ -1,105 +1,174 @@
-from flask import Flask, render_template, request, session, jsonify
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
+import sqlite3
 import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
+from recommend_utils import get_top_books, get_recommendations, books_df
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
 
-# Load dataset
-books_df = pd.read_csv("data/books.csv")
-books_df.columns = books_df.columns.str.strip().str.lower()
-books_df = books_df.fillna('')
+USER_ID = 1  # Guest user
 
-books_df['combined_text'] = (
-    books_df['title'].astype(str) + " " +
-    books_df['genre'].astype(str) + " " +
-    books_df['mood'].astype(str) + " " +
-    books_df['description'].astype(str)
-)
+# ------------------------------
+# Initialize session history
+# ------------------------------
+@app.before_request
+def make_session_permanent():
+    if 'name_history' not in session:
+        session['name_history'] = []
+    if 'mood_history' not in session:
+        session['mood_history'] = []
+    if 'genre_history' not in session:
+        session['genre_history'] = []
 
-vectorizer = TfidfVectorizer(stop_words="english")
-tfidf_matrix = vectorizer.fit_transform(books_df['combined_text'])
-similarity_matrix = cosine_similarity(tfidf_matrix, tfidf_matrix)
-
-def get_top_books(n=12):
-    return books_df.sample(n).to_dict(orient='records')
-
-def get_recommendations(user_input):
-    user_vec = vectorizer.transform([user_input])
-    similarity_scores = cosine_similarity(user_vec, tfidf_matrix).flatten()
-    top_indices = similarity_scores.argsort()[-12:][::-1]
-    return books_df.iloc[top_indices].to_dict(orient='records')
-
-
-@app.route('/')
+# ------------------------------
+# Home and Recommendation Pages
+# ------------------------------
+@app.route("/")
 def home():
-    return render_template('index.html', books=get_top_books())
+    return render_template("index.html", books=get_top_books())
 
-@app.route('/recommend')
+@app.route("/recommend")
 def recommend():
-    return render_template('recommend.html')
+    return render_template("recommend.html")
 
-
-# ----------------- Search with History ----------------- #
-def update_history(key, query):
-    if key not in session:
-        session[key] = []
-    if query and query not in session[key]:
-        session[key].insert(0, query)
-        session[key] = session[key][:5]  # keep last 5
-
-
-@app.route('/search/name', methods=['GET', 'POST'])
+# ------------------------------
+# Search by Name
+# ------------------------------
+@app.route("/search/name", methods=["GET", "POST"])
 def search_name():
-    query = None
+    query = ""
     recommended_books = []
-    if request.method == 'POST':
-        query = request.form.get('movie_name').strip()
+
+    if request.method == "POST":
+        query = request.form.get("name", "").strip()
         if query:
-            update_history('name_history', query)
-            mask = books_df['title'].str.lower().str.contains(query.lower())
-            recommended_books = books_df[mask].to_dict(orient='records')
-    history = session.get('name_history', [])
-    return render_template('recommend_name.html', query=query, books=recommended_books, history=history)
+            books_df['title'] = books_df['title'].fillna('').astype(str)
+            mask = books_df['title'].str.contains(query, case=False, na=False)
+            recommended_books = books_df[mask].to_dict(orient="records")
 
+            # Update search history (last 10)
+            history = session.get('name_history', [])
+            if query not in history:
+                history.append(query)
+            session['name_history'] = history[-10:]
 
-@app.route('/search/genre', methods=['GET', 'POST'])
+    return render_template(
+        "recommend_name.html",
+        query=query,
+        books=recommended_books,
+        history=session.get('name_history', [])
+    )
+
+# ------------------------------
+# Search by Genre
+# ------------------------------
+@app.route("/search/genre", methods=["GET", "POST"])
 def search_genre():
-    query = None
+    query = ""
     recommended_books = []
-    if request.method == 'POST':
-        query = request.form.get('genre').strip()
+
+    if request.method == "POST":
+        query = request.form.get("genre", "").strip()
         if query:
-            update_history('genre_history', query)
             recommended_books = get_recommendations(query)
-    history = session.get('genre_history', [])
-    return render_template('recommend_genre.html', query=query, books=recommended_books, history=history)
 
+            # Update search history
+            history = session.get('genre_history', [])
+            if query not in history:
+                history.append(query)
+            session['genre_history'] = history[-10:]
 
-@app.route('/search/mood', methods=['GET', 'POST'])
+    return render_template(
+        "recommend_genre.html",
+        query=query,
+        books=recommended_books,
+        history=session.get('genre_history', [])
+    )
+
+# ------------------------------
+# Search by Mood
+# ------------------------------
+@app.route("/search/mood", methods=["GET", "POST"])
 def search_mood():
-    query = None
+    query = ""
     recommended_books = []
-    if request.method == 'POST':
-        query = request.form.get('mood').strip()
+
+    if request.method == "POST":
+        query = request.form.get("mood", "").strip()
         if query:
-            update_history('mood_history', query)
             recommended_books = get_recommendations(query)
-    history = session.get('mood_history', [])
-    return render_template('recommend_mood.html', query=query, books=recommended_books, history=history)
 
+            # Update search history
+            history = session.get('mood_history', [])
+            if query not in history:
+                history.append(query)
+            session['mood_history'] = history[-10:]
 
-# API for JavaScript auto-suggest
-@app.route('/search/history')
+    return render_template(
+        "recommend_mood.html",
+        query=query,
+        books=recommended_books,
+        history=session.get('mood_history', [])
+    )
+
+# ------------------------------
+# Favorites Page
+# ------------------------------
+@app.route("/favorites")
+def favorites():
+    conn = sqlite3.connect("users.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT book_id FROM favorites WHERE user_id=?", (USER_ID,))
+    ids = cursor.fetchall()
+    conn.close()
+
+    fav_books = books_df[books_df["id"].astype(str).isin([i[0] for i in ids])]
+    return render_template("favorites.html", books=fav_books.to_dict(orient="records"))
+
+# ------------------------------
+# Add to Favorites
+# ------------------------------
+@app.route("/add_favorite", methods=["POST"])
+def add_favorite():
+    book_id = request.form.get("book_id")
+    conn = sqlite3.connect("users.db")
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO favorites (user_id, book_id) VALUES (?, ?)", (USER_ID, book_id))
+    conn.commit()
+    conn.close()
+    return jsonify({"msg": "Added to Favorites!"})
+
+# ------------------------------
+# Remove from Favorites
+# ------------------------------
+@app.route("/remove_favorite/<book_id>", methods=["POST"])
+def remove_favorite(book_id):
+    conn = sqlite3.connect("users.db")
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM favorites WHERE user_id=? AND book_id=?", (USER_ID, book_id))
+    conn.commit()
+    conn.close()
+    return redirect(url_for("favorites"))
+
+# ------------------------------
+# Optional: Search history API for JS autocomplete
+# ------------------------------
+@app.route("/search/history")
 def search_history():
-    term = request.args.get('term', '').lower()
-    search_type = request.args.get('type', 'name')  # name, genre, mood
-    key = f"{search_type}_history"
-    history = session.get(key, [])
-    suggestions = [h for h in history if term in h.lower()]
+    term = request.args.get("term", "").lower()
+    type_ = request.args.get("type")
+    hist = []
+
+    if type_ == "name":
+        hist = session.get('name_history', [])
+    elif type_ == "mood":
+        hist = session.get('mood_history', [])
+    elif type_ == "genre":
+        hist = session.get('genre_history', [])
+
+    suggestions = [x for x in hist if term in x.lower()]
     return jsonify(suggestions)
 
-
+# ------------------------------
 if __name__ == "__main__":
     app.run(debug=True)

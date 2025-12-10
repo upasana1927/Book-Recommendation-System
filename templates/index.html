@@ -1,6 +1,7 @@
 {% extends "layout.html" %}
 
 {% block content %}
+
 <div class="home-card">
     <h1>Discover Your Next Favorite Book</h1>
     <p>Explore books tailored to your taste with VibeReads.</p>
@@ -16,9 +17,47 @@
     <p>Author: {{ book.author }}</p>
     <p>Genre: {{ book.genre }}</p>
     <p>Mood: {{ book.mood }}</p>
+     <button class="fav-btn" onclick="addFavorite('{{ book.id }}')">⭐ Favorite</button>
     <a href="{{ book.freelink }}" target="_blank">Read for Free</a>
 </div>
+<div id="toast" class="toast"></div>
 {% endfor %}
 
 </div>
+  <script>
+        function addFavorite(bookId) {
+    fetch('/add_favorite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'book_id=' + bookId
+    })
+    .then(res => res.json())
+    .then(data => alert("Added to Favorites!"));
+}
+function addFavorite(bookId) {
+    fetch('/add_favorite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'book_id=' + bookId
+    })
+    .then(res => res.json())
+    .then(data => {
+        showToast("Added to Favorites!");
+    })
+    .catch(err => {
+        showToast("Failed to add favorite!");
+        console.error(err);
+    });
+}
+
+function showToast(message) {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.className = "toast show";
+    setTimeout(() => {
+        toast.className = toast.className.replace("show", "");
+    }, 3000); // disappears after 3 seconds
+}
+
+</script>
 {% endblock %}

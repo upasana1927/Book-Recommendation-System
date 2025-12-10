@@ -16,7 +16,7 @@
         <button type="submit" class="search-btn">Search</button>
     </form>
 </div>
-
+<div id="toast" class="toast"></div>
 {% if query %}
     <h3 class="results-title"></h3>
     {% if books %}
@@ -26,6 +26,11 @@
             <img src="{{ book.coverimage }}" alt="{{ book.title }}">
             <h4>{{ book.title }}</h4>
             <p>Author: {{ book.author }}</p>
+            <p>Rating: {{ book.rating }} ⭐</p>
+            <p>Review: {{ book.review }}</p>
+            <button class="fav-btn" onclick="addFavorite('{{ book.id }}')">⭐ Favorite</button>
+
+  
             <a href="{{ book.freelink }}" target="_blank">Read for Free</a>
         </div>
         {% endfor %}
@@ -64,9 +69,88 @@ genreInput.addEventListener('input', async () => {
         genreDropdown.style.display = 'none';
     }
 });
+function addFavorite(bookId) {
+    fetch('/add_favorite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'book_id=' + bookId
+    })
+    .then(res => res.json())
+    .then(data => alert("Added to Favorites!"));
+}
+function addFavorite(bookId) {
+    fetch('/add_favorite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'book_id=' + bookId
+    })
+    .then(res => res.json())
+    .then(data => {
+        showToast("Added to Favorites!");
+    })
+    .catch(err => {
+        showToast("Failed to add favorite!");
+        console.error(err);
+    });
+}
+
+function showToast(message) {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.className = "toast show";
+    setTimeout(() => {
+        toast.className = toast.className.replace("show", "");
+    }, 3000); // disappears after 3 seconds
+}
+
 </script>
 
 <style>
+    .toast {
+    visibility: hidden;
+    min-width: 250px;
+    margin-left: -125px;
+    background-color: rgb(246, 81, 21);
+    color: white;
+    text-align: center;
+    border-radius: 8px;
+    padding: 16px;
+    position: fixed;
+    z-index: 1000;
+    left: 50%;
+    bottom: 30px;
+    font-size: 18px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    opacity: 0;
+    transition: opacity 0.5s, bottom 0.5s;
+}
+
+.toast.show {
+    visibility: visible;
+    opacity: 1;
+    bottom: 50px;
+}
+    .fav-btn {
+    width: 100%;
+    padding: 10px;
+    margin-top: 8px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.fav-btn {
+    background: #e0481e;
+}
+
+
+
+.fav-btn:hover {
+    background: #d15837;
+}
+
+
 .back-btn {
     position: absolute;
     top: 100px;
