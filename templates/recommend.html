@@ -4,6 +4,16 @@
 
 <div class="card-container">
 
+    <!-- Card 1: Choose by Name -->
+    <a href="{{ url_for('search_name') }}" class="choice-card">
+        <img src="https://images.unsplash.com/photo-1553729459-efe14ef6055d?auto=format&fit=crop&w=400&q=80" alt="Name">
+        <div class="card-text">
+            <h2>Choose by Name</h2>
+            <p>Search for books related to your favorite movies.</p>
+        </div>
+    </a>
+
+    <!-- Card 2: Choose by Mood -->
     <a href="{{ url_for('search_mood') }}" class="choice-card">
         <img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=400&q=80" alt="Mood">
         <div class="card-text">
@@ -12,6 +22,7 @@
         </div>
     </a>
 
+    <!-- Card 3: Choose by Genre -->
     <a href="{{ url_for('search_genre') }}" class="choice-card">
         <img src="https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=400&q=80" alt="Genre">
         <div class="card-text">
@@ -19,17 +30,19 @@
             <p>Find books from your favorite genres.</p>
         </div>
     </a>
+
 </div>
 
 <style>
 .card-container {
-    min-height: calc(90vh - 120px);
+    min-height: calc(70vh - 120px);
     display: flex;
     justify-content: center;
-    align-items: center;
-    gap: 200px;
-    padding: 40px 0;
+    align-items: center; /* vertically center the row */
+    gap: 50px;
+    padding: 60px 20px; /* upar niche equal space */
     flex-wrap: wrap;
+    
 }
 
 .choice-card {
@@ -41,6 +54,9 @@
     color: #000;
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     transition: transform 0.3s, box-shadow 0.3s;
+    margin-top: 0; /* ensure uniform vertical spacing */
+    margin-bottom: 0;
+    
 }
 
 .choice-card:hover {
@@ -57,7 +73,7 @@
 .card-text {
     text-align: center;
     padding: 15px;
-    background-color: #fff;
+   background-color: #e9e5deff;
 }
 
 .card-text h2 {
@@ -69,6 +85,21 @@
     margin: 0;
     font-size: 14px;
     color: #271f15;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1000px) {
+    .card-container {
+        gap: 30px;
+    }
+}
+
+@media (max-width: 700px) {
+    .card-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+    }
 }
 </style>
 

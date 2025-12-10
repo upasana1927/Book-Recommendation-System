@@ -6,8 +6,13 @@
 
 <div class="search-card">
     <h1>Search Books by Genre</h1>
-    <form method="POST">
-        <input type="text" name="genre" placeholder="Enter genre (fiction, adventure,...)" class="search-field">
+    <form method="POST" autocomplete="off">
+        <input type="text" id="genre-input" name="genre" placeholder="Enter genre (fiction, adventure,...)" class="search-field" list="genre-history">
+        <datalist id="genre-history">
+            {% for item in history %}
+            <option value="{{ item }}"></option>
+            {% endfor %}
+        </datalist>
         <button type="submit" class="search-btn">Search</button>
     </form>
 </div>
@@ -29,6 +34,37 @@
         <p>No books found for this mood.</p>
     {% endif %}
 {% endif %}
+
+<script>
+const genreInput = document.getElementById('genre-input');
+const genreDropdown = document.getElementById('genre-dropdown');
+
+genreInput.addEventListener('input', async () => {
+    const term = genreInput.value;
+    if (!term) { genreDropdown.style.display = 'none'; return; }
+
+    const response = await fetch(`/search/history?term=${term}&type=genre`);
+    const suggestions = await response.json();
+
+    genreDropdown.innerHTML = '';
+    if (suggestions.length > 0) {
+        suggestions.forEach(item => {
+            const div = document.createElement('div');
+            div.textContent = item;
+            div.classList.add('dropdown-item');
+            div.addEventListener('click', () => {
+                genreInput.value = item;
+                genreDropdown.innerHTML = '';
+                genreDropdown.style.display = 'none';
+            });
+            genreDropdown.appendChild(div);
+        });
+        genreDropdown.style.display = 'block';
+    } else {
+        genreDropdown.style.display = 'none';
+    }
+});
+</script>
 
 <style>
 .back-btn {
@@ -159,5 +195,34 @@
 .book-card a:hover {
     text-decoration: underline;
 }
+.autocomplete-wrapper {
+    position: relative;
+}
+
+.dropdown-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #473622; /* Dark brown */
+    color: #fff;          /* White text */
+    border-radius: 6px;
+    max-height: 180px;
+    overflow-y: auto;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    display: none;
+    z-index: 100;
+}
+
+.dropdown-item {
+    padding: 10px 15px;
+    cursor: pointer;
+}
+
+.dropdown-item:hover {
+    background-color: #372a1e; /* Darker brown on hover */
+}
+
+
 </style>
 {% endblock %}

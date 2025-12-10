@@ -5,10 +5,10 @@
 <a href="{{ url_for('recommend') }}" class="back-btn">&larr; Back</a>
 
 <div class="search-card">
-    <h1>Search Books by Mood</h1>
+    <h1>Search Books by Name</h1>
     <form method="POST" autocomplete="off">
-        <input type="text" id="mood-input" name="mood" placeholder="Enter mood..." class="search-field" list="mood-history">
-        <datalist id="mood-history">
+        <input type="text" id="name-input" name="movie_name" placeholder="Enter book name..." class="search-field" list="name-history">
+        <datalist id="name-history">
             {% for item in history %}
             <option value="{{ item }}"></option>
             {% endfor %}
@@ -18,7 +18,7 @@
 </div>
 
 {% if query %}
-    <h3 class="results-title"></h3>
+    <h3 class="results-title">Books related to "{{ query }}"</h3>
     {% if books %}
     <div class="book-grid">
         {% for book in books %}
@@ -31,37 +31,37 @@
         {% endfor %}
     </div>
     {% else %}
-        <p>No books found for this mood.</p>
+        <p>No books found related to this name.</p>
     {% endif %}
 {% endif %}
 
 <script>
-const moodInput = document.getElementById('mood-input');
-const moodDropdown = document.getElementById('mood-dropdown');
+const nameInput = document.getElementById('name-input');
+const nameDropdown = document.getElementById('name-dropdown');
 
-moodInput.addEventListener('input', async () => {
-    const term = moodInput.value;
-    if (!term) { moodDropdown.style.display = 'none'; return; }
+nameInput.addEventListener('input', async () => {
+    const term = nameInput.value;
+    if (!term) { nameDropdown.style.display = 'none'; return; }
 
-    const response = await fetch(`/search/history?term=${term}&type=mood`);
+    const response = await fetch(`/search/history?term=${term}&type=name`);
     const suggestions = await response.json();
 
-    moodDropdown.innerHTML = '';
+    nameDropdown.innerHTML = '';
     if (suggestions.length > 0) {
         suggestions.forEach(item => {
             const div = document.createElement('div');
             div.textContent = item;
             div.classList.add('dropdown-item');
             div.addEventListener('click', () => {
-                moodInput.value = item;
-                moodDropdown.innerHTML = '';
-                moodDropdown.style.display = 'none';
+                nameInput.value = item;
+                nameDropdown.innerHTML = '';
+                nameDropdown.style.display = 'none';
             });
-            moodDropdown.appendChild(div);
+            nameDropdown.appendChild(div);
         });
-        moodDropdown.style.display = 'block';
+        nameDropdown.style.display = 'block';
     } else {
-        moodDropdown.style.display = 'none';
+        nameDropdown.style.display = 'none';
     }
 });
 </script>
@@ -195,7 +195,6 @@ moodInput.addEventListener('input', async () => {
 .book-card a:hover {
     text-decoration: underline;
 }
-
 .autocomplete-wrapper {
     position: relative;
 }
@@ -210,7 +209,7 @@ moodInput.addEventListener('input', async () => {
     border-radius: 6px;
     max-height: 180px;
     overflow-y: auto;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    box-shadow: 0 8px 20px #473622;
     display: none;
     z-index: 100;
 }
