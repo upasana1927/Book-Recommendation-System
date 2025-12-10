@@ -6,7 +6,7 @@ Features:
 
     View random books on the homepage.
 
-    Search books by mood or genre.
+    Search books by name,mood or genre.
 
     AI-powered recommendations based on user input.
 
@@ -61,7 +61,7 @@ Usage
 
     Navigate to Home to see random books.
 
-    Go to Recommendation to search by mood or genre.
+    Go to Recommendation to search by name, mood or genre.
 
     Enter a query in the search box to get AI-powered suggestions.
 
