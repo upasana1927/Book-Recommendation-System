@@ -6,11 +6,8 @@ from recommend_utils import get_top_books, get_recommendations, books_df
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
 
-USER_ID = 1  # Guest user
+USER_ID = 1  
 
-# ------------------------------
-# Initialize session history
-# ------------------------------
 @app.before_request
 def make_session_permanent():
     if 'name_history' not in session:
@@ -20,9 +17,6 @@ def make_session_permanent():
     if 'genre_history' not in session:
         session['genre_history'] = []
 
-# ------------------------------
-# Home and Recommendation Pages
-# ------------------------------
 @app.route("/")
 def home():
     return render_template("index.html", books=get_top_books())
@@ -31,9 +25,6 @@ def home():
 def recommend():
     return render_template("recommend.html")
 
-# ------------------------------
-# Search by Name
-# ------------------------------
 @app.route("/search/name", methods=["GET", "POST"])
 def search_name():
     query = ""
@@ -46,7 +37,7 @@ def search_name():
             mask = books_df['title'].str.contains(query, case=False, na=False)
             recommended_books = books_df[mask].to_dict(orient="records")
 
-            # Update search history (last 10)
+
             history = session.get('name_history', [])
             if query not in history:
                 history.append(query)
@@ -59,9 +50,6 @@ def search_name():
         history=session.get('name_history', [])
     )
 
-# ------------------------------
-# Search by Genre
-# ------------------------------
 @app.route("/search/genre", methods=["GET", "POST"])
 def search_genre():
     query = ""
@@ -72,7 +60,7 @@ def search_genre():
         if query:
             recommended_books = get_recommendations(query)
 
-            # Update search history
+           
             history = session.get('genre_history', [])
             if query not in history:
                 history.append(query)
@@ -85,9 +73,6 @@ def search_genre():
         history=session.get('genre_history', [])
     )
 
-# ------------------------------
-# Search by Mood
-# ------------------------------
 @app.route("/search/mood", methods=["GET", "POST"])
 def search_mood():
     query = ""
@@ -98,7 +83,7 @@ def search_mood():
         if query:
             recommended_books = get_recommendations(query)
 
-            # Update search history
+          
             history = session.get('mood_history', [])
             if query not in history:
                 history.append(query)
@@ -111,9 +96,7 @@ def search_mood():
         history=session.get('mood_history', [])
     )
 
-# ------------------------------
-# Favorites Page
-# ------------------------------
+
 @app.route("/favorites")
 def favorites():
     conn = sqlite3.connect("users.db")
@@ -125,9 +108,6 @@ def favorites():
     fav_books = books_df[books_df["id"].astype(str).isin([i[0] for i in ids])]
     return render_template("favorites.html", books=fav_books.to_dict(orient="records"))
 
-# ------------------------------
-# Add to Favorites
-# ------------------------------
 @app.route("/add_favorite", methods=["POST"])
 def add_favorite():
     book_id = request.form.get("book_id")
@@ -138,9 +118,6 @@ def add_favorite():
     conn.close()
     return jsonify({"msg": "Added to Favorites!"})
 
-# ------------------------------
-# Remove from Favorites
-# ------------------------------
 @app.route("/remove_favorite/<book_id>", methods=["POST"])
 def remove_favorite(book_id):
     conn = sqlite3.connect("users.db")
@@ -150,9 +127,6 @@ def remove_favorite(book_id):
     conn.close()
     return redirect(url_for("favorites"))
 
-# ------------------------------
-# Optional: Search history API for JS autocomplete
-# ------------------------------
 @app.route("/search/history")
 def search_history():
     term = request.args.get("term", "").lower()
@@ -169,6 +143,6 @@ def search_history():
     suggestions = [x for x in hist if term in x.lower()]
     return jsonify(suggestions)
 
-# ------------------------------
+
 if __name__ == "__main__":
     app.run(debug=True)

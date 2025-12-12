@@ -2,16 +2,15 @@ import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-# Load book data
+
 books_df = pd.read_csv("data/books.csv")
 books_df.columns = books_df.columns.str.strip().str.lower()
 books_df = books_df.fillna("")
 
-# Add unique ID column if not present
+
 if "id" not in books_df.columns:
     books_df["id"] = books_df.index.astype(str)
 
-# Combine text for recommendations
 books_df['combined_text'] = (
     books_df['title'].astype(str) + " " +
     books_df['author'].astype(str) + " " +
@@ -21,7 +20,7 @@ books_df['combined_text'] = (
     books_df['review'].astype(str)
 )
 
-# TF-IDF vectorizer
+
 vectorizer = TfidfVectorizer(stop_words="english")
 tfidf_matrix = vectorizer.fit_transform(books_df['combined_text'])
 
